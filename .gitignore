@@ -1,3 +1,5 @@
-# Ignore all files with no extension (executables, build artifacts)
-**/*
+# Ignore all files without an extension (executables, build artifacts)
+# but keep directories and files with extensions
 
+# Match files with no dot in the filename
+**/[!.]*
