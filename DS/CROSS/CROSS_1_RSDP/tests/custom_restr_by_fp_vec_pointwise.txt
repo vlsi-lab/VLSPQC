@@ -1,3 +1,0 @@
-Testing keypair sign. sign_open.
-m1: d81c4d8d734fcbfbeade3d3f8a039faa2a2c9957e835ad55b22e75bf57bb556ac8
-Test Successful
