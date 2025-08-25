@@ -1,0 +1,5 @@
+# Ignore all files with no extension (executables, build artifacts)
+**/*
+
+# Allow files with an extension (source code, headers, scripts, docs, etc.)
+!**/*.*
