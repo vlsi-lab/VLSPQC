@@ -1,5 +1,4 @@
-# Ignore all files without an extension (executables, build artifacts)
-# but keep directories and files with extensions
-
-# Match files with no dot in the filename
-**/[!.]*
+# Ignore specific HQC executables
+VLSPQC/KEM/HQC/HQC-128/HQC-128
+VLSPQC/KEM/HQC/HQC-128/HQC-192
+VLSPQC/KEM/HQC/HQC-128/HQC-256
