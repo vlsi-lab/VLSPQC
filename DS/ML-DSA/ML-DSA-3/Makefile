@@ -1,7 +1,11 @@
 # ****************************************************************************
 #
-# Auth: Alessandra Dolmeta - Politecnico di Torino
-# Date: August 2024
+# Name: VLSPQC
+# Auth: Alessandra Dolmeta, Valeria Piscopo - Politecnico di Torino
+# Date: September 2025
+#
+# Algorithm: ML-DSA-3
+#
 # ****************************************************************************
 
 # Compiled application has the same name of its folder

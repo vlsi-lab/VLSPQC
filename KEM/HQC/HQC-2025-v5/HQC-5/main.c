@@ -1,12 +1,12 @@
-// ****************************************************************************
-//
-// Name: VLSPQC
-// Auth: Alessandra Dolmeta, Valeria Piscopo - Politecnico di Torino
-// Date: September 2025
-//
-// Algorithm: HQC-5
-//
-// ****************************************************************************
+///////////////////////////////////////////////////////////////////////////////////////
+//                                                                                   //
+// Auth: Alessandra Dolmeta, Valeria Piscopo - Politecnico di Torino                 //
+// Date: September 2025                                                              //
+// Desc: Entry point for testing the HQC implementation using input and output       //
+//       test vector coming from NIST                                                //
+//                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////
+
 
 #include <ctype.h>
 #include <stdio.h>

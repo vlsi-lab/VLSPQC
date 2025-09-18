@@ -1,13 +1,10 @@
-////////////////////////////////////////////////////////////////////////////////
-// ****************************************************************************
-//                            		CEA 
-// ****************************************************************************
-// Author : Alessandra Dolmeta
-// Date	 : March 2024
-// Desc: Entry point for testing the HQC implementation using input and output
-//       test vector coming from NIST
-// Note: We commented out 9 test vectors over 10. Max N_TVEC is 10
-// ****************************************************************************
+///////////////////////////////////////////////////////////////////////////////////////
+//                                                                                   //
+// Auth: Alessandra Dolmeta, Valeria Piscopo - Politecnico di Torino                 //
+// Date: September 2025                                                              //
+// Desc: KAT-TEST                                                                    //
+//                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TEST_VECTORS_3_H__
 #define __TEST_VECTORS_3_H__

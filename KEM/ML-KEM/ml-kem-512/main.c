@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 //                                                                                   //
 // Auth: Alessandra Dolmeta, Valeria Piscopo - Politecnico di Torino                 //
-// Date: September 2024                                                              //
-// Desc: Entry point for testing the Kyber implementation using input and output     //
+// Date: September 2025                                                              //
+// Desc: Entry point for testing the ML-KEM implementation using input and output    //
 //       test vector coming from NIST                                                //
 //                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////

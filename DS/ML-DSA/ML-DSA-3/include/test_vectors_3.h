@@ -1,10 +1,11 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Auth: Alessandra Dolmeta - Politecnico di Torino
-// Date: June 2024
-// Desc: Test vector generated with the PQCgenKAT.c program in the Dilithium
-//       reference implementation: https://github.com/pq-crystals/Dilithium/tree/main
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+//                                                                                   //
+// Auth: Alessandra Dolmeta, Valeria Piscopo - Politecnico di Torino                 //
+// Date: September 2025                                                              //
+// Desc: KAT-TEST                                                                    //
+//                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TEST_VECTORS_3_H__
 #define __TEST_VECTORS_3_H__
 

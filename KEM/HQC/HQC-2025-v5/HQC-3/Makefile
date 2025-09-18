@@ -4,7 +4,7 @@
 # Auth: Alessandra Dolmeta, Valeria Piscopo - Politecnico di Torino
 # Date: September 2025
 #
-# Algorithm: HQC-128
+# Algorithm: HQC-3
 #
 # ****************************************************************************
 
