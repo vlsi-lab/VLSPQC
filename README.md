@@ -10,7 +10,7 @@ The repository is designed to provide **runnable code on FPGA platforms** while 
 
 This repository currently supports:
 
-- **ML-KEM**    [Kyber](https://github.com/pq-crystals/kyber)
+- **ML-KEM**    [Kyber](https://github.com/pq-crystals/kyber)  
 This repository contains the official reference implementation of the [Kyber](https://www.pq-crystals.org/kyber/) key encapsulation mechanism.
 Kyber has been selected for standardization in [round 3](https://csrc.nist.gov/Projects/post-quantum-cryptography/round-3-submissions) 
 of the [NIST PQC](https://csrc.nist.gov/projects/post-quantum-cryptography) standardization project.
@@ -24,6 +24,7 @@ Dilithium is standardized as [FIPS 204](https://csrc.nist.gov/pubs/fips/204/fina
     - **HQC-2024**      : previous version of HQC (23/03/2024)
     - **HQC-2025**      : last version of HQC (22/08/2025)
     - **HQC-2025-v5**   : last version of HQC (22/08/2025) - additional modification to Karatsuba multiplication, for hardware optimization. 
+  
 This repository provides the official implementation of [HQC](https://pqc-hqc.org), a code-based Key Encapsulation Mechanism (KEM) whose security is based on the hardness of solving the Quasi-Cylic Syndrome Decoding (QCSD) problem. HQC is one of the selected algorithms from the [NIST's Post-Quantum Cryptography Standardization Project](https://csrc.nist.gov/projects/post-quantum-cryptography).
 
 - **Falcon**  
