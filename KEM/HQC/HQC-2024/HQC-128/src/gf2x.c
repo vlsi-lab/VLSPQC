@@ -145,15 +145,9 @@ static int call_count = 0;  // Static variable to keep track of the count
 void karatsuba(uint64_t *o, const uint64_t *a, const uint64_t *b, uint64_t size, uint64_t *stack) {
    uint64_t size_l, size_h;
    const uint64_t *ah, *bh;
-  
-   call_count++;  // Increment the count
-   //printf("hi: %d\n", call_count);
-   
+
    if (size == 1) {
-      //printf("a0: %llu \n", a[0]);
-      //printf("b0: %llu \n", b[0]);
       base_mul(o, a[0], b[0]);
-      //printf("o: %llu \n", o);
       return;
    }
 
@@ -221,24 +215,10 @@ void vect_mul(uint64_t *o, const uint64_t *a1, const uint64_t *a2) {
    uint64_t stack[VEC_N_SIZE_64 << 3] = {0};    //2216 elements
    uint64_t o_karat[(VEC_N_SIZE_64 << 1) + 1] = {0}; //555 elements
 
-   //printf("\n\na1: "); vect_print(a1, VEC_N_SIZE_BYTES);
-   //printf("\n\na2: "); vect_print(a2, VEC_N_SIZE_BYTES);
-   /*printf("a1: ");
-   for (int i = 0; i < VEC_N_SIZE_64; i++) {
-      printf("%llu ", a1[i]);
-   }
-   printf("\n");
-   printf("a2: ");
-   for (int i = 0; i < VEC_N_SIZE_64; i++) {
-      printf("%llu ", a2[i]);
-   }*/
-
-   //printf("\nVEC_N_SIZE_64 and stack:%d, %d\n", VEC_N_SIZE_64, *stack);
    karatsuba(o_karat, a1, a2, VEC_N_SIZE_64, stack);
-   //printf("o_karat: "); vect_print(o_karat, VEC_N_SIZE_BYTES);
-   //printf("\n");
+
    reduce(o, o_karat);
-   //printf("o: "); vect_print(o, VEC_N_SIZE_BYTES);
-   //printf("\n");
-   //printf("\n\nreduce: "); vect_print(o, VEC_N_SIZE_BYTES);
+
 }
+
+

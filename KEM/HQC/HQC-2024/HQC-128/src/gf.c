@@ -12,8 +12,7 @@ static uint16_t gf_reduce(uint64_t x, size_t deg_x);
 void gf_carryless_mul(uint8_t *c, uint8_t a, uint8_t b);
 uint16_t trailing_zero_bits_count(uint16_t a);
 
-uint16_t axx = 1;
-uint32_t call_count = 0;
+
 
 
 /**
@@ -61,8 +60,7 @@ uint16_t trailing_zero_bits_count(uint16_t a) {
         tmp += ((1 - ((a >> i) & 0x0001)) & mask);
         mask &= - (1 - ((a >> i) & 0x0001));
     }
-    //call_count++;  // Increment call count
-    //printf("Function called %u times.\n", call_count);
+
     return tmp;
 }
 
