@@ -14,14 +14,9 @@
 #include "test_vectors_512.h"
 
 
-#define PERF_CNT_CYCLES 1
-
 #define TEST_KEY  1
 #define TEST_ENC  1
 #define TEST_DEC  1
-
-
-#define NTESTS 1
 
 
 // Global variables
@@ -48,9 +43,7 @@ uint8_t key_b[KYBER_SSBYTES];
 int main(void)
 {
 
-    unsigned cycles_keygen, cycles_encaps, cycles_decaps;
-
-    printf("Started %d tests with size %d\n", NTESTS, 256*KYBER_K);
+    printf("Started test with size %d\n", 256*KYBER_K);
 
     char test_str[50] = "Testing";
     #if TEST_KEY
@@ -65,72 +58,61 @@ int main(void)
         printf("%s\n", test_str);
 
 
-    #if PERF_CNT_INSTR
-        uint64_t keygen_instructions[NTESTS];
-        uint64_t encaps_instructions[NTESTS];
-        uint64_t decaps_instructions[NTESTS];
-    #endif
+    //************************************************* 
+    // KEY
+    //*************************************************
+    #if TEST_KEY
+        // Filling coin vector with indcpa_kem_keypair seeds, obtained from the initialization of randombyte with seed
+        memcpy(keypair_rnd , TVEC_IN_KEM_KEYPAIR, KYBER_SYMBYTES*2);
 
-    for(int i=0; i<NTESTS; i++) {
+        crypto_kem_keypair_derand(pk, sk, keypair_rnd);
 
-        printf("Test %d: ", i);
+        if(memcmp(pk, TVEC_OUT_PK, KYBER_PUBLICKEYBYTES)) { printf("ERROR: PK mismatch\n");}
+        if(memcmp(sk, TVEC_OUT_SK, KYBER_SECRETKEYBYTES)) { printf("ERROR: SK mismatch\n");}
+    #endif /* TEST_KEY */
 
-        //************************************************* 
-        // KEY
-        //*************************************************
-        #if TEST_KEY
-            // Filling coin vector with indcpa_kem_keypair seeds, obtained from the initialization of randombyte with seed
-            memcpy(keypair_rnd , TVEC_IN_KEM_KEYPAIR[i], KYBER_SYMBYTES*2);
-  
-            crypto_kem_keypair_derand(pk, sk, keypair_rnd);
+    //************************************************* 
+    // ENCAPSULATION
+    //*************************************************
+    #if TEST_ENC
+        // Setting up Input test vectors
+        memcpy(encaps_rnd, TVEC_IN_KEM_ENC, KYBER_SYMBYTES);
 
-            if(memcmp(pk, TVEC_OUT_PK[i], KYBER_PUBLICKEYBYTES)) { printf("ERROR: PK mismatch\n");}
-            if(memcmp(sk, TVEC_OUT_SK[i], KYBER_SECRETKEYBYTES)) { printf("ERROR: SK mismatch\n");}
+        #if TEST_KEY == 0
+            memcpy(pk, TVEC_OUT_PK, KYBER_PUBLICKEYBYTES);
         #endif /* TEST_KEY */
 
-        //************************************************* 
-        // ENCAPSULATION
-        //*************************************************
-        #if TEST_ENC
-            // Setting up Input test vectors
-            memcpy(encaps_rnd, TVEC_IN_KEM_ENC[i], KYBER_SYMBYTES);
+        crypto_kem_enc_derand(ct, key_b, pk, encaps_rnd);
 
-            #if TEST_KEY == 0
-                memcpy(pk, TVEC_OUT_PK[i], KYBER_PUBLICKEYBYTES);
-            #endif /* TEST_KEY */
+        if(memcmp(ct, TVEC_OUT_CT, KYBER_CIPHERTEXTBYTES)) { printf("ERROR: CT mismatch\n");}
+        if(memcmp(key_b, TVEC_OUT_SS, KYBER_SSBYTES)) { printf("ERROR: SS mismatch\n");}
+    #endif /* TEST_ENC */
 
-            crypto_kem_enc_derand(ct, key_b, pk, encaps_rnd);
+    //************************************************* 
+    // DECAPSULATION
+    //*************************************************
 
-            if(memcmp(ct, TVEC_OUT_CT[i], KYBER_CIPHERTEXTBYTES)) { printf("ERROR: CT mismatch\n");}
-            if(memcmp(key_b, TVEC_OUT_SS[i], KYBER_SSBYTES)) { printf("ERROR: SS mismatch\n");}
+    #if TEST_DEC
+        #if TEST_KEY == 0
+            // In case we do not generate SK in this test we take it from the test vectors
+            memcpy(sk, TVEC_OUT_SK, KYBER_SECRETKEYBYTES);
+        #endif /* TEST_KEY */
+        #if TEST_ENC == 0
+            // In case we do not generate CT in this test we take it from the test vectors
+            memcpy(ct, TVEC_OUT_CT, KYBER_CIPHERTEXTBYTES);
         #endif /* TEST_ENC */
 
-        //************************************************* 
-        // DECAPSULATION
-        //*************************************************
+        crypto_kem_dec(key_a, ct, sk);
 
-        #if TEST_DEC
-            #if TEST_KEY == 0
-                // In case we do not generate SK in this test we take it from the test vectors
-                memcpy(sk, TVEC_OUT_SK[i], KYBER_SECRETKEYBYTES);
-            #endif /* TEST_KEY */
-            #if TEST_ENC == 0
-                // In case we do not generate CT in this test we take it from the test vectors
-                memcpy(ct, TVEC_OUT_CT[i], KYBER_CIPHERTEXTBYTES);
-            #endif /* TEST_ENC */
+        if(memcmp(key_a, TVEC_OUT_SS, KYBER_SSBYTES)) { printf("ERROR: SS mismatch\n");}
+    #endif /* TEST_DEC */
 
-            crypto_kem_dec(key_a, ct, sk);
+    printf("OK\n");
 
-            if(memcmp(key_a, TVEC_OUT_SS[i], KYBER_SSBYTES)) { printf("ERROR: SS mismatch\n");}
-        #endif /* TEST_DEC */
-
-        printf("OK\n");
-
-    }
 
     printVect("key_b", key_b, KYBER_SSBYTES);
     printVect("key_a", key_a, KYBER_SSBYTES);
-    printVect("key_r", TVEC_OUT_SS[0], KYBER_SSBYTES);
+    printVect("key_r", TVEC_OUT_SS, KYBER_SSBYTES);
     printf("Test Successful\n");
     
 
