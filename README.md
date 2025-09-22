@@ -29,6 +29,7 @@ This repository provides the official implementation of [HQC](https://pqc-hqc.or
 - **Falcon**  
 
 - **SPHINCS+**  
+This repository contains the software that accompanies the [SPHINCS+ submission](https://sphincs.org/) to [NIST's Post-Quantum Cryptography](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography) project.
 
 - **CROSS**
 
