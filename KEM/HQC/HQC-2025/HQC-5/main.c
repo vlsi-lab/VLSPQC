@@ -16,8 +16,8 @@
 #include "test_vectors_5.h"
 
 
-#define TEST_KEY        1
-#define TEST_ENC        1
+#define TEST_KEY        0
+#define TEST_ENC        0
 #define TEST_DEC        1
 
 

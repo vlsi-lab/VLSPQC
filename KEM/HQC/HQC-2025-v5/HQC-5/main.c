@@ -117,10 +117,10 @@ int main(void)
             printVect("pk", pk, CRYPTO_PUBLICKEYBYTES);
             printVect("sk", sk, CRYPTO_SECRETKEYBYTES);
             printVect("ct", ct, CRYPTO_CIPHERTEXTBYTES);
-            printVect("key_a", key_a, CRYPTO_BYTES);
-            printVect("key_b", key_b, CRYPTO_BYTES);
-            printf("\n");
     #endif 
+    printVect("key_a", ss, CRYPTO_BYTES);
+    printVect("key_b", ss1, CRYPTO_BYTES);
+    printf("\n");
 
 
     printf("Test Successful\n");
