@@ -11,21 +11,21 @@
 #endif
 
 #ifndef NUM_SHARES_M
-#define NUM_SHARES_M 1
+#define NUM_SHARES_M 2
 #endif
 
 #ifndef NUM_SHARES_C
-#define NUM_SHARES_C 1
+#define NUM_SHARES_C 2
 #endif
 
 #ifndef NUM_SHARES_AD
-#define NUM_SHARES_AD 1
+#define NUM_SHARES_AD 2
 #endif
 
 #ifndef NUM_SHARES_NPUB
-#define NUM_SHARES_NPUB 1
+#define NUM_SHARES_NPUB 2
 #endif
 
 #ifndef NUM_SHARES_KEY
-#define NUM_SHARES_KEY 1
+#define NUM_SHARES_KEY 2
 #endif

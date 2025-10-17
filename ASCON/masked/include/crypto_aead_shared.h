@@ -4,6 +4,15 @@
 #include "shares.h"
 #include "word.h"
 
+void print_mask_m(const mask_m_uint32_t* m, const char* label) {
+    printf("🔹 %s = [", label);
+    for (int i = 0; i < NUM_SHARES_M; i++) {
+        printf(" 0x%08X", m->shares[i]);
+        if (i < NUM_SHARES_M - 1) printf(",");
+    }
+    printf(" ]\n");
+}
+
 static inline int crypto_aead_encrypt_shared(mask_c_uint32_t* cs, unsigned long long* clen,
                                const mask_m_uint32_t* ms,
                                unsigned long long mlen,
@@ -16,6 +25,8 @@ static inline int crypto_aead_encrypt_shared(mask_c_uint32_t* cs, unsigned long 
   ascon_initaead(&s, npubs, ks);
 
   ascon_adata(&s, ads, adlen);
+  print_mask_m(ms, "message ms");
+
   ascon_encrypt(&s, cs, ms, mlen);
   ascon_final(&s, ks);
   ascon_settag(&s, cs + NUM_WORDS(mlen));
