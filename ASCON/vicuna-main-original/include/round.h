@@ -6,62 +6,30 @@
 #include "word.h"
 #include "ascon.h"
 
-#include <stdint.h>
+//affine originale 
+/* s.x[2].s[d].w[i] ^= s.x[1].s[d].w[i];
+  s.x[0].s[d].w[i] ^= s.x[4].s[d].w[i];
+  s.x[4].s[d].w[i] ^= s.x[3].s[d].w[i];
+  */
+  state_t AFFINE1(state_t s, int i, int d) {
+  size_t vl = __riscv_vsetvl_e32m1(5);
+  uint32_t src_array[5] = {s.x[0].s[d].w[i], s.x[1].s[d].w[i], s.x[2].s[d].w[i], s.x[3].s[d].w[i], s.x[4].s[d].w[i]};
+  vuint32m1_t share = __riscv_vle32_v_u32m1(src_array, vl);
+  vuint32m1_t v_res;
+  uint32_t result[5];
 
-/* -------------------------------------------------------
-   Hook: define the per-word affine transform here.
-   TODO: replace with the real operation of `affine1.vv`.
-   For now this is an identity (returns x unchanged).
-   ------------------------------------------------------- */
-static inline uint32_t affine1_word(uint32_t x) {
-    /* Example (if you later know the spec):
-       return x ^ ror32(x, 1) ^ ror32(x, 8); */
-    return x;
+  asm ("affine1.vv %0, %1\n" : "=vr"(v_res) : "vr" (share)); //c[16]===1ee34125fdba17443d01da8a0eefb045
+
+  __riscv_vse32_v_u32m1(result, v_res, vl);
+
+
+  s.x[0].s[d].w[i] = result[0];
+  s.x[1].s[d].w[i] = result[1];
+  s.x[2].s[d].w[i] = result[2];
+  s.x[3].s[d].w[i] = result[3];
+  s.x[4].s[d].w[i] = result[4];
+  return s;
 }
-
-/* Optional helper if you need rotates for your real affine:
-static inline uint32_t ror32(uint32_t x, unsigned n) {
-    n &= 31u;
-    return (x >> n) | (x << ((32u - n) & 31u));
-}
-*/
-
-/* Your original function, now portable with a scalar fallback */
-state_t AFFINE1(state_t s, int i, int d) {
-#if defined(USE_AFFINE1_CUSTOM)   /* keep the fast path if you actually have the custom op */
-    size_t vl = __riscv_vsetvl_e32m1(5);
-    uint32_t src_array[5] = {
-        s.x[0].s[d].w[i], s.x[1].s[d].w[i], s.x[2].s[d].w[i],
-        s.x[3].s[d].w[i], s.x[4].s[d].w[i]
-    };
-    vuint32m1_t share = __riscv_vle32_v_u32m1(src_array, vl);
-    vuint32m1_t v_res;
-
-    /* Custom instruction – only works if your toolchain/ISA supports it */
-    asm volatile ("affine1.vv %0, %1" : "=vr"(v_res) : "vr"(share));
-
-    uint32_t result[5];
-    __riscv_vse32_v_u32m1(result, v_res, vl);
-
-    s.x[0].s[d].w[i] = result[0];
-    s.x[1].s[d].w[i] = result[1];
-    s.x[2].s[d].w[i] = result[2];
-    s.x[3].s[d].w[i] = result[3];
-    s.x[4].s[d].w[i] = result[4];
-
-#else
-    /* Portable scalar fallback (no RVV, no custom op) */
-    s.x[0].s[d].w[i] = affine1_word(s.x[0].s[d].w[i]);
-    s.x[1].s[d].w[i] = affine1_word(s.x[1].s[d].w[i]);
-    s.x[2].s[d].w[i] = affine1_word(s.x[2].s[d].w[i]);
-    s.x[3].s[d].w[i] = affine1_word(s.x[3].s[d].w[i]);
-    s.x[4].s[d].w[i] = affine1_word(s.x[4].s[d].w[i]);
-#endif
-
-    return s;
-}
-
-
 state_t AFFINE2(state_t s, int i, int d) {
   s.x[2].s[d].w[i] ^= s.x[5].s[d].w[i];
   s.x[1].s[d].w[i] ^= s.x[0].s[d].w[i];

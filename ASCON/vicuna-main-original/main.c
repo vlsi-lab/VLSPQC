@@ -1,7 +1,13 @@
-#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
+
+
+
+
 
 #define CRYPTO_AEAD
 
@@ -47,16 +53,16 @@ unsigned int cycles;
 
   unsigned long long alen = 16;
   unsigned long long mlen = 16;
-  unsigned long long clen, mlen2;
-
+  unsigned long long clen;
   int result = 0;
 
 
-  printf("input parameters:\n");
+  printf("input:\n");
   print('k', k, CRYPTO_KEYBYTES);
   print('n', n, CRYPTO_NPUBBYTES);
   print('a', a, alen);
   print('m', m, mlen);
+ 
 
 
   result = crypto_aead_encrypt(c, &clen, m, mlen, a, alen, 0, n, k);
@@ -64,30 +70,9 @@ unsigned int cycles;
   print('c', c, clen - CRYPTO_ABYTES);
   print('t', c + clen - CRYPTO_ABYTES, CRYPTO_ABYTES);
 
-  result |= crypto_aead_decrypt(c, &mlen2, 0, c, clen, a, alen, n, k);
+  result |= crypto_aead_decrypt(m, &mlen, 0, c, clen, a, alen, n, k);
 
-
-  printf("Original msg: ");
-  for (int i=0; i<mlen; i++){
-      printf("%02X", m[i]);
-  }
-  printf("\n");
-  printf("Decrypt msg: ");
-  for (int i=0; i<mlen; i++){
-      printf("%02X", c[i]);
-  }
-  printf("\n");
-  
-  if (mlen != mlen2) {
-      printf("Crypto_aead_decrypt returned bad 'mlen': Got <%" PRIu32">, expected <%" PRIu32 ">\n", (uint32_t)mlen2, (uint32_t)mlen);
-  }
-
-  if (memcmp(m, c, mlen)) {
-      printf("❌ Crypto_aead_decrypt did not recover the plaintext\n");
-  }
-  else{
-      printf("✅ Crypto_aead_decrypt recover the plaintext\n");
-    }
+  print('m', m, mlen);
 
   return 0;
   

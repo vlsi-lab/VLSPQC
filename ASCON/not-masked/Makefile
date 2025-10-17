@@ -6,7 +6,7 @@
 
 # Compiled application has the same name of its folder
 APPLI   = $(shell basename $(CURDIR))
-SOURCES = src/constants.c src/interleave.c src/printstate.c src/randombytes.c src/shares.c
+SOURCES = src/printstate.c src/aead.c src/randombytes.c
 SRC     = $(SOURCES) \
 		main.c
           
@@ -31,6 +31,4 @@ clean:
 	rm -f $(APPLI)
 
 .PHONY: all clean
-
-
 
