@@ -135,18 +135,118 @@ s.x[5] = MREUSE(s.x[5], 0, ns);
 ```
 The temporary randomness used during masking (`s.x[5]`) is rotated/reused for the next round to avoid bias while minimizing RNG consumption.
 
+```c
+static inline  word_t MREUSE(word_t w, uint64_t val, int ns) {
+  w.s[0].w[0] = (uint32_t)val;
+  w.s[0].w[1] = val >> 32;
+  w = MMIX(w, ns);
+  //if (ns >= 2) w.s[1].w[0] = ROR32(w.s[1].w[0], 7); with ROR32 being x >> n | x << (-n & 31);
+  //if (ns >= 2) w.s[1].w[1] = ROR32(w.s[1].w[1], 7);
+  w = MEXPAND(w, 1, ns);
+  //return MREDUCE(w, nso, nsi); and MREDUCE being:
+  //  if (nsi >= 2 && nso < 2) w.s[0].w[0] ^= ROR32(w.s[1].w[0], ROT(1));
+  //if (nsi >= 2 && nso < 2) w.s[0].w[1] ^= ROR32(w.s[1].w[1], ROT(1));
+  return w;
+}
+```
 
-
-` `
+#### Linear Diffusion Layer
+The `LINEAR()` function performs rotations and XORs within each lane to spread bits across positions.
+```c
+if (ns >= 2) s = LINEAR(s, 1)
+```
+It operates per share `(d)`, so each share is diffused independently:
+- Each lane `x[j]` is transformed by a sequence of XORs with rotated versions of itself (`ROR32()`).
+- Then a second round of XORs is performed mixing intermediate values from `t.x[j]`.
+- This step corresponds to ASCON’s linear diffusion layer, which provides avalanche and bit-mixing properties.
 
 ```c
+static inline state_t LINEAR(state_t s, int d) {
+  state_t t;
+  t.x[0].s[d].w[0] = s.x[0].s[d].w[0] ^ ROR32(s.x[0].s[d].w[1], 4);
+  t.x[0].s[d].w[1] = s.x[0].s[d].w[1] ^ ROR32(s.x[0].s[d].w[0], 5);
+  t.x[1].s[d].w[0] = s.x[1].s[d].w[0] ^ ROR32(s.x[1].s[d].w[0], 11);
+  t.x[1].s[d].w[1] = s.x[1].s[d].w[1] ^ ROR32(s.x[1].s[d].w[1], 11);
+  t.x[2].s[d].w[0] = s.x[2].s[d].w[0] ^ ROR32(s.x[2].s[d].w[1], 2);
+  t.x[2].s[d].w[1] = s.x[2].s[d].w[1] ^ ROR32(s.x[2].s[d].w[0], 3);
+  t.x[3].s[d].w[0] = s.x[3].s[d].w[0] ^ ROR32(s.x[3].s[d].w[1], 3);
+  t.x[3].s[d].w[1] = s.x[3].s[d].w[1] ^ ROR32(s.x[3].s[d].w[0], 4);
+  t.x[4].s[d].w[0] = s.x[4].s[d].w[0] ^ ROR32(s.x[4].s[d].w[0], 17);
+  t.x[4].s[d].w[1] = s.x[4].s[d].w[1] ^ ROR32(s.x[4].s[d].w[1], 17);
+  s.x[0].s[d].w[0] ^= ROR32(t.x[0].s[d].w[1], 9);
+  s.x[0].s[d].w[1] ^= ROR32(t.x[0].s[d].w[0], 10);
+  s.x[1].s[d].w[0] ^= ROR32(t.x[1].s[d].w[1], 19);
+  s.x[1].s[d].w[1] ^= ROR32(t.x[1].s[d].w[0], 20);
+  s.x[2].s[d].w[0] ^= ROR32(t.x[2].s[d].w[1], 0);
+  s.x[2].s[d].w[1] ^= ROR32(t.x[2].s[d].w[0], 1);
+  s.x[3].s[d].w[0] ^= ROR32(t.x[3].s[d].w[0], 5);
+  s.x[3].s[d].w[1] ^= ROR32(t.x[3].s[d].w[1], 5);
+  s.x[4].s[d].w[0] ^= ROR32(t.x[4].s[d].w[1], 3);
+  s.x[4].s[d].w[1] ^= ROR32(t.x[4].s[d].w[0], 4);
+  return s;
+}
+```
+
+### 🔁 The permutation sequence (PROUNDS)
+
+Finally, the permutation is called with:
+```c
+PROUNDS(state_t* s, int nr, int ns)
+```
+
+This runs nr rounds, using constants provided by macros like `RC(i), START(nr), INC, and END`:
+```c
+int i = START(nr);
+do {
+  ROUND_(s, RC(i), ns);
+  i += INC;
+} while (i != END);
+```
+
+Each call to `ROUND_()` applies one masked nonlinear + linear round with unique round constants.
+
+
+### 🔐 Summary — What happens when `ns = 2`
+| Layer                           | Operation                            | Masking detail                                            |
+| ------------------------------- | ------------------------------------ | --------------------------------------------------------- |
+| **Constant addition**           | XOR round constants to `x[2].share0` | Constants are public — only share 0 is updated.           |
+| **Affine1 + Toffoli + Affine2** | Implements S-box across lanes        | Nonlinear layer done with `MXORBIC`, preserving masking.  |
+| **Bitwise NOT on x2.s[0]**      | Inversion as per ASCON S-box         | Applied to share 0 (no leakage since it’s linear).        |
+| **Random reuse**                | Reuses `s.x[5]` as randomness pool   | Maintains fresh domain masks for next round.              |
+| **Linear diffusion**            | XOR with rotated versions of itself  | Each share is diffused independently to preserve masking. |
+
+
+
+## `crypto_aead_encrypt_shared()`
+
+```c
+static inline int crypto_aead_encrypt_shared(mask_c_uint32_t* cs, unsigned long long* clen,
+                               const mask_m_uint32_t* ms,
+                               unsigned long long mlen,
+                               const mask_ad_uint32_t* ads,
+                               unsigned long long adlen,
+                               const mask_npub_uint32_t* npubs,
+                               const mask_key_uint32_t* ks) {
+  state_t s;
+  *clen = mlen + CRYPTO_ABYTES;
+
+  // 1) Init with key+nonce
+  ascon_initaead(&s, npubs, ks);
+  // 2) Absorb associated data
+  ascon_adata(&s, ads, adlen);
+  // 3) Encrypt message → ciphertext shares in cs[0 .. NUM_WORDS(mlen)-1]
+  ascon_encrypt(&s, cs, ms, mlen);
+  // 4) Finalize (keyed)
+  ascon_final(&s, ks);
+  // 5) Write authentication tag after ciphertext
+  ascon_settag(&s, cs + NUM_WORDS(mlen));
+
+  return 0;
+}
 
 ```
 
-
-
-## `ascon_initaead()` — Function Description
-
+### `ascon_initaead()` — Function Description
 
 The ASCON AEAD initialization (`ascon_initaead`) sets up the internal masked state before encryption begins.  
 It combines:
@@ -159,7 +259,6 @@ All operations are performed in a **masked domain**, where every word is represe
 For this build: `ns = 2`.
 
 ---
-
 
 ```c
 static inline void ascon_initaead(state_t* s,
@@ -206,7 +305,171 @@ static inline void ascon_initaead(state_t* s,
 
 
 
- 
+### `ascon_adata()` — Function Description
+
+The **associated data absorption** (`ascon_adata`) mixes the (non-encrypted) AD into the masked ASCON state before message processing.  
+It processes **full-rate blocks** of AD, then a **final partial block** with domain padding, and finally applies a **domain-separation bit**.
+
+All operations are performed in the **masked domain** with `ns = 2` shares.
+
+---
+
 ```c
+static inline void ascon_adata(state_t* s, const mask_ad_uint32_t* ad, uint64_t adlen) {
+  const int nr = ASCON_PB_ROUNDS;              // permutation rounds for data phase
+
+  if (adlen) {
+    /* 1) Absorb full AD blocks: for ASCON-128 rate, each block is 64 bits (2×32b words) */
+    while (adlen >= ASCON_AEAD_RATE) {
+      word_t as = MLOAD((uint32_t*)ad, NUM_SHARES_AD); // load one masked AD block
+      s->x[0] = MXOR(s->x[0], as, NUM_SHARES_AD);      // absorb into x[0]
+      P(s, nr, NUM_SHARES_AD);                         // permute after each full block
+      adlen -= ASCON_AEAD_RATE;
+      ad += 2;                                         // advance by 2×32-bit words = 64 bits
+    }
+
+    /* 2) Final (possibly partial) AD block: apply padding then absorb remaining bytes */
+    s->x[0].s[0].w[1] ^= 0x80000000 >> (adlen * 4);    // 10* padding nibble at rate position
+    if (adlen) {
+      word_t as = MLOAD((uint32_t*)ad, NUM_SHARES_AD); // load trailing masked AD data
+      s->x[0] = MXOR(s->x[0], as, NUM_SHARES_AD);      // absorb remainder
+    }
+    P(s, nr, NUM_SHARES_AD);                           // permute after final/partial block
+  }
+
+  /* 3) Domain separation between AD and message phases */
+  s->x[4].s[0].w[0] ^= 1;                              // flip a public bit in share 0
+}
+```
+
+- In many ASCON configurations, ASCON_AEAD_RATE is one 64-bit word (ASCON-128); your code increments ad += 2 (i.e., two 32-bit words), which matches a 64-bit rate.
+- The padding `0x8…` line places the standard 10* padding at the correct nibble position (each byte = 2 nibbles; hence the * 4 shift factor).
+- The permutation uses `ASCON_PB_ROUNDS` (the b rounds for data phase), distinct from the a rounds used in initialization.
+
+| Step                                  | Operation                                                                                      | Description                                                                                                                                                                                            |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1️⃣ Full AD blocks**                | `as = MLOAD(ad, NUM_SHARES_AD)` → `x[0] = MXOR(x[0], as, …)` → `P(s, ASCON_PB_ROUNDS, …)`      | While `adlen ≥ rate`, load one **masked** AD block, XOR-absorb it into lane `x[0]`, then **permute** with `PB` rounds. Decrease `adlen` by the **rate** and advance `ad`.                              |
+| **2️⃣ Final partial block + padding** | `x[0].s[0].w[1] ^= 0x80000000 >> (adlen*4)` → (if `adlen`) `x[0] ^= MLOAD(ad)` → `P(s, PB, …)` | Apply **10*** padding at the **nibble** position that follows the remaining AD nibbles. If some AD bytes remain (< rate), load them masked and absorb into `x[0]`. Then run one more `PB` permutation. |
+| **3️⃣ Domain separation**             | `x[4].s[0].w[0] ^= 1`                                                                          | Toggle a **public** bit in `x[4]` (share 0). This marks the boundary between **AD** and **message** phases to the permutation.                                                                         |
+
+
+### `ascon_encrypt()` — Function Description
+
+The **message encryption/absorption** mixes masked plaintext blocks into the state and emits **ciphertext shares**.  
+It processes all **full-rate blocks** first, and then a **final partial block** with padding.  
+All operations are masked with `ns = 2`.
+
+---
+
+```c
+void ascon_encrypt(state_t* s, mask_c_uint32_t* c, const mask_m_uint32_t* m,
+                   uint64_t mlen) {
+  const int nr = ASCON_PB_ROUNDS;
+  /* full plaintext blocks */
+  while (mlen >= ASCON_AEAD_RATE) {
+    word_t ms = MLOAD((uint32_t*)m, NUM_SHARES_M);
+    s->x[0] = MXOR(s->x[0], ms, NUM_SHARES_M);
+    MSTORE((uint32_t*)c, s->x[0], NUM_SHARES_C);
+    P(s, nr, NUM_SHARES_M);
+    mlen -= ASCON_AEAD_RATE;
+    m += 2;
+    c += 2;
+  }
+  /* final plaintext block */
+  s->x[0].s[0].w[1] ^= 0x80000000 >> (mlen * 4);
+  if (mlen) {
+    word_t ms = MLOAD((uint32_t*)m, NUM_SHARES_M);
+    s->x[0] = MXOR(s->x[0], ms, NUM_SHARES_M);
+    MSTORE((uint32_t*)c, s->x[0], NUM_SHARES_C);
+  }
+}
+```
+
+| Step                        | Operation                                                                           | Description                                                                                                                                                                                                  |
+| --------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1️⃣ Full blocks loop**    | `msblk = MLOAD(m)` → `x[0] = MXOR(x[0], msblk)` → `MSTORE(c, x[0])` → `P(s, PB, …)` | For each full-rate plaintext block: load the **masked** block, **absorb** it into lane `x[0]`, **write ciphertext shares** (which equal the current `x[0]`), then **permute** to prepare for the next block. |
+| **2️⃣ Padding**             | `x[0].s[0].w[1] ^= 0x80000000 >> (mlen * 4)`                                        | Apply **10*** padding at the nibble position immediately following the remaining plaintext nibbles (each byte = 2 nibbles → multiply remaining bytes by 2 → multiply by 2 bits per nibble = shift by `*4`).  |
+| **3️⃣ Final partial block** | If `mlen > 0`: `msblk = MLOAD(m)` → `x[0] = MXOR(x[0], msblk)` → `MSTORE(c, x[0])`  | Absorb the remaining plaintext (shorter than one full rate) and write the final ciphertext shares. (No permutation here; the next call, `ascon_final`, will handle keying for the tag.)                      |
+
+
+### `ascon_final()` — Function Description
+
+The **finalization** phase re-keys the masked state to derive the authentication tag.  
+It loads the masked key, XORs it into lanes `x[1]` and `x[2]`, runs the **a-round** permutation, then XORs the key again into `x[3]` and `x[4]`.  
+All operations are performed in the masked domain with `ns = 2`.
+
+---
+
+```c
+static inline void ascon_final(state_t* s, const mask_key_uint32_t* k) {
+  word_t K1, K2;
+  K1 = MLOAD((uint32_t*)k, NUM_SHARES_KEY);
+  K2 = MLOAD((uint32_t*)(k + 2), NUM_SHARES_KEY);
+  /* first key xor (first 64-bit word) */
+  s->x[1] = MXOR(s->x[1], K1, NUM_SHARES_KEY);
+  /* first key xor (second 64-bit word) */
+  s->x[2] = MXOR(s->x[2], K2, NUM_SHARES_KEY);
+  /* compute the permutation */
+  P(s, ASCON_PA_ROUNDS, NUM_SHARES_KEY);
+  /* second key xor (first 64-bit word) */
+  s->x[3] = MXOR(s->x[3], K1, NUM_SHARES_KEY);
+  /* second key xor (second 64-bit word) */
+  s->x[4] = MXOR(s->x[4], K2, NUM_SHARES_KEY);
+}
 
 ```
+
+| Step                    | Operation                           | Description                                                                                    |
+| ----------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **1️⃣ Load key shares** | `K1 = MLOAD(k)` • `K2 = MLOAD(k+2)` | Load the masked **128-bit key** as two 64-bit lanes (`K1`, `K2`).                              |
+| **2️⃣ First key XOR**   | `x[1] ^= K1` • `x[2] ^= K2`         | Absorb the key into lanes `x[1]` and `x[2]` (masked XOR on both shares).                       |
+| **3️⃣ Permutation**     | `P(s, ASCON_PA_ROUNDS, …)`          | Run the **a-round** permutation to mix the keyed state.                                        |
+| **4️⃣ Second key XOR**  | `x[3] ^= K1` • `x[4] ^= K2`         | Re-inject the key into lanes that will hold the **authentication tag** (after `ascon_settag`). |
+
+After `ascon_final()`, the state contains the tag material.
+The subsequent call `ascon_settag(&s, cs + NUM_WORDS(mlen))` will serialize the masked tag shares to the output buffer.
+
+
+### `ascon_settag()` and `ascon_iszero()`— Function Description
+
+After finalization, the **authentication tag** resides in lanes `x[3]‖x[4]` of the masked state.  
+`ascon_settag()` **serializes** these two 64-bit lanes (each masked) to the output buffer right **after the ciphertext**.  
+`ascon_iszero()` is a **constant-time check** used for tag verification: it **recombines shares** (rotation-aware) into share 0, folds all 64+64 bits to a single flag, and returns **0 if tag==0**, **−1 otherwise**.
+
+> ⚠️ `ascon_iszero()` **modifies** `s->x[3]` and `s->x[4]` (it folds other shares into `s[0]`). If you need a non-destructive check, see the alternative below.
+
+---
+
+```c
+static inline void ascon_settag(state_t* s, mask_c_uint32_t* t) {
+  MSTORE((uint32_t*)t, s->x[3], NUM_SHARES_C);
+  MSTORE((uint32_t*)(t + 2), s->x[4], NUM_SHARES_C);
+}
+```
+
+```c
+static inline int ascon_iszero(state_t* s) {
+#if NUM_SHARES_KEY >= 2
+  s->x[3].s[0].w[0] ^= ROR32(s->x[3].s[1].w[0], ROT(1));
+  s->x[3].s[0].w[1] ^= ROR32(s->x[3].s[1].w[1], ROT(1));
+  s->x[4].s[0].w[0] ^= ROR32(s->x[4].s[1].w[0], ROT(1));
+  s->x[4].s[0].w[1] ^= ROR32(s->x[4].s[1].w[1], ROT(1));
+#endif
+  uint32_t result;
+  result  = s->x[3].s[0].w[0] ^ s->x[3].s[0].w[1];
+  result ^= s->x[4].s[0].w[0] ^ s->x[4].s[0].w[1];
+  result |= result >> 16;
+  result |= result >> 8;
+  return ((((int)(result & 0xff) - 1) >> 8) & 1) - 1;  // 0 if tag==0, else -1
+}
+```
+
+| Function       | Step | Operation            | Description                                                                                                                                                                                |                      |                |
+| -------------- | ---- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | -------------- |
+| `ascon_settag` | 1    | `MSTORE(t, x[3])`    | Store the **first 64-bit tag lane** (masked) to `t[0..1]` (two 32-bit words).                                                                                                              |                      |                |
+|                | 2    | `MSTORE(t+2, x[4])`  | Store the **second 64-bit tag lane** to `t[2..3]`. Tag length is 16 bytes total.                                                                                                           |                      |                |
+| `ascon_iszero` | 1    | Fold shares → `s[0]` | For each lane (`x[3]`, `x[4]`), XOR `s[0]` with **rotated** higher shares: for `ns=2`, `s[0] ^= ROR32(s[1], ROT(1))` on both halves. (For `ns≥3/4`, also fold shares 2/3 with `ROT(2/3)`.) |                      |                |
+|                | 2    | Reduce lanes         | XOR low/high halves of `x[3].s[0]` and `x[4].s[0]` into `result`.                                                                                                                          |                      |                |
+|                | 3    | Constant-time fold   | Propagate any set bit into the low byte with `result                                                                                                                                       | = result>>16; result | = result>>8;`. |
+|                | 4    | Return flag          | `((((result&0xff)-1)>>8)&1)-1` → **returns 0 if `result==0`**, otherwise **−1**. No branches, constant-time.                                                                               |                      |                |
+
