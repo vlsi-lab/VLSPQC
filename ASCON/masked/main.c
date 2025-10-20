@@ -53,10 +53,10 @@ unsigned int cycles;
 
 
   printf("input parameters:\n");
-  print('k', k, CRYPTO_KEYBYTES);
-  print('n', n, CRYPTO_NPUBBYTES);
-  print('a', a, alen);
-  print('m', m, mlen);
+  print('k', k, CRYPTO_KEYBYTES);   //Secret-key
+  print('n', n, CRYPTO_NPUBBYTES);  //Public-nonce
+  print('a', a, alen);              //Associated data  
+  print('m', m, mlen);              //Plaintext message
 
 
   result = crypto_aead_encrypt(c, &clen, m, mlen, a, alen, 0, n, k);

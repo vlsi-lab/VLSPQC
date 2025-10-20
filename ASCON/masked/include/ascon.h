@@ -51,6 +51,10 @@ static inline void ascon_initaead(state_t* s, const mask_npub_uint32_t* n,
   s->x[3] = MXOR(s->x[3], K1, NUM_SHARES_KEY);
   s->x[4] = MXOR(s->x[4], K2, NUM_SHARES_KEY);
 }
+
+
+
+
 static inline void ascon_adata(state_t* s, const mask_ad_uint32_t* ad, uint64_t adlen) {
   const int nr = ASCON_PB_ROUNDS;
   if (adlen) {

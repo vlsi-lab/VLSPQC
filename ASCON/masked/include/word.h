@@ -142,11 +142,11 @@ static inline  word_t MZERO(int ns) {
     RND(w.s[1].w[0]);
     RND(w.s[1].w[1]);
     /*sarà da eseguire con Zbb, ci sono solo gli opcode
-	RORI(w.s[1].w[0], w.s[1].w[0], 7);
+	  RORI(w.s[1].w[0], w.s[1].w[0], 7);
     RORI(w.s[1].w[1], w.s[1].w[1], 7);
     RORI(w.s[0].w[0], w.s[1].w[0], ROT(1));
     RORI(w.s[0].w[1], w.s[1].w[1], ROT(1));*/
-	w.s[1].w[0]=ROR32(w.s[1].w[0], 7);
+	  w.s[1].w[0]=ROR32(w.s[1].w[0], 7);
     w.s[1].w[1]=ROR32(w.s[1].w[1], 7);
     w.s[0].w[0]=ROR32(w.s[1].w[0], ROT(1));
     w.s[0].w[1]=ROR32(w.s[1].w[1], ROT(1));

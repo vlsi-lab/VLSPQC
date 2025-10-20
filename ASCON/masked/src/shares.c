@@ -2,6 +2,7 @@
 #include "shares.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 
@@ -18,11 +19,56 @@ void generate_shares_encrypt(const unsigned char* m, mask_m_uint32_t* ms,
                              const unsigned char* npub,
                              mask_npub_uint32_t* npubs, const unsigned char* k,
                              mask_key_uint32_t* ks) {
+
   generate_shares((uint32_t*)ks, NUM_SHARES_KEY, k, CRYPTO_KEYBYTES);
   generate_shares((uint32_t*)npubs, NUM_SHARES_NPUB, npub, CRYPTO_NPUBBYTES);
   generate_shares((uint32_t*)ads, NUM_SHARES_AD, ad, adlen);
   generate_shares((uint32_t*)ms, NUM_SHARES_M, m, mlen);
+
+
+  #if DEBUG_CODE==1
+    printf("\n========== MASKED SHARE DEBUG ==========\n");
+
+    printf("[KEY SHARES] (%llu bytes)\n", (unsigned long long)CRYPTO_KEYBYTES);
+    for (int i = 0; i < NUM_SHARES_KEY; i++) {
+      printf("  Share %d:\n    ", i);
+      for (size_t j = 0; j < CRYPTO_KEYBYTES / 4; j++) {
+        printf("%08X ", ks[j].shares[i]);
+      }
+      printf("\n");
+    }
+
+    printf("\n[NPUB SHARES] (%llu bytes)\n", (unsigned long long)CRYPTO_NPUBBYTES);
+    for (int i = 0; i < NUM_SHARES_NPUB; i++) {
+      printf("  Share %d:\n    ", i);
+      for (size_t j = 0; j < CRYPTO_NPUBBYTES / 4; j++) {
+        printf("%08X ", npubs[j].shares[i]);
+      }
+      printf("\n");
+    }
+
+    printf("\n[AD SHARES] (%llu bytes)\n", (unsigned long long)adlen);
+    for (int i = 0; i < NUM_SHARES_AD; i++) {
+      printf("  Share %d:\n    ", i);
+      for (size_t j = 0; j < adlen / 4; j++) {
+        printf("%08X ", ads[j].shares[i]);
+      }
+      printf("\n");
+    }
+
+    printf("\n[MESSAGE SHARES] (%llu bytes)\n", (unsigned long long)mlen);
+    for (int i = 0; i < NUM_SHARES_M; i++) {
+      printf("  Share %d:\n    ", i);
+      for (size_t j = 0; j < mlen / 4; j++) {
+        printf("%08X ", ms[j].shares[i]);
+      }
+      printf("\n");
+    }
+
+    printf("========================================\n\n");
+  #endif
 }
+
 
 void generate_shares_decrypt(const unsigned char* c, mask_c_uint32_t* cs,
                              const unsigned long long clen,

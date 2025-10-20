@@ -13,19 +13,19 @@ static inline int crypto_aead_encrypt(unsigned char* c, unsigned long long* clen
 
 
   #if DEBUG_CODE==1
-    printf("🚀 Starting crypto_aead_encrypt()...\n\n");
+    printf("\n🚀 Starting crypto_aead_encrypt()...\n\n");
 
     /* --------------------- Inputs --------------------- */
-    printf("Plaintext (m, %llu bytes):\n", mlen);
+    printf("Plaintext (m, %llu bytes): ", mlen);
     for (unsigned long long i = 0; i < mlen; i++) printf("%02X", m[i]);
     printf("\n");
-    printf("Associated Data (a, %llu bytes):\n", alen);
+    printf("Associated Data (a, %llu bytes): ", alen);
     for (unsigned long long i = 0; i < alen; i++) printf("%02X", a[i]);
     printf("\n");
-    printf("Nonce (npub):\n");
+    printf("Nonce (npub): ");
     for (unsigned long long i = 0; i < CRYPTO_NPUBBYTES; i++) printf("%02X", npub[i]);
     printf("\n");
-    printf("Key (k):\n");
+    printf("Key (k): ");
     for (unsigned long long i = 0; i < CRYPTO_KEYBYTES; i++) printf("%02X", k[i]);
     printf("\n\n");
   #endif
@@ -39,11 +39,8 @@ static inline int crypto_aead_encrypt(unsigned char* c, unsigned long long* clen
   mask_c_uint32_t* cs = (mask_c_uint32_t*)malloc(sizeof(*cs) * NUM_WORDS(mlen + CRYPTO_ABYTES));
   /* mask plain input data */
 
-  generate_shares_encrypt(m, ms, mlen, a, as, alen, npub, ns, k, ks);
 
   #if DEBUG_CODE==1
-    printf("Generating masked shares...\n\n");
-
     /* --------------------- Inputs --------------------- */
     printf("Plaintext (m, %llu bytes):\n", mlen);
     for (unsigned long long i = 0; i < mlen; i++) printf("%02X", m[i]);
@@ -58,6 +55,8 @@ static inline int crypto_aead_encrypt(unsigned char* c, unsigned long long* clen
     for (unsigned long long i = 0; i < CRYPTO_KEYBYTES; i++) printf("%02X", k[i]);
     printf("\n\n");
   #endif
+  
+  generate_shares_encrypt(m, ms, mlen, a, as, alen, npub, ns, k, ks);
 
   /* call shared interface of ascon encrypt */
   //trigger_high();
