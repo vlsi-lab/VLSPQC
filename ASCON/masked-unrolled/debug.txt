@@ -1,0 +1,422 @@
+input parameters:
+k[16]=000102030405060708090a0b0c0d0e0f
+n[16]=000102030405060708090a0b0c0d0e0f
+a[16]=000102030405060708090a0b0c0d0e0f
+m[16]=000102030405060708090a0b0c0d0e0f
+
+🚀 Starting crypto_aead_encrypt()...
+
+Plaintext (m, 16 bytes): 000102030405060708090A0B0C0D0E0F
+Associated Data (a, 16 bytes): 000102030405060708090A0B0C0D0E0F
+Nonce (npub): 000102030405060708090A0B0C0D0E0F
+Key (k): 000102030405060708090A0B0C0D0E0F
+
+Plaintext (m, 16 bytes):
+000102030405060708090A0B0C0D0E0F
+Associated Data (a, 16 bytes):
+000102030405060708090A0B0C0D0E0F
+Nonce (npub):
+000102030405060708090A0B0C0D0E0F
+Key (k):
+000102030405060708090A0B0C0D0E0F
+
+
+========== MASKED SHARE DEBUG ==========
+[KEY SHARES] (16 bytes)
+  Share 0:
+    3BC6AEAD 1A6888F6 E6E61C50 C27204CA 
+  Share 1:
+    0EA2A869 A62BD4FF AC497F29 EC3B07AB 
+
+[NPUB SHARES] (16 bytes)
+  Share 0:
+    B48B035B 78C136E3 EF654477 CECC2A15 
+  Share 1:
+    381571E3 00D382C2 A129E31B 14807B8D 
+
+[AD SHARES] (16 bytes)
+  Share 0:
+    E3CBAB8D 4BB21D90 E1D7BB85 D1892CE4 
+  Share 1:
+    3AB6292E CC7E4F9F 6AD62B66 009BBFB7 
+
+[MESSAGE SHARES] (16 bytes)
+  Share 0:
+    534DB2FB 28EA236B 391FF8CB 1E0E4A1D 
+  Share 1:
+    22D3F0A3 AC85A15D 4BDB1058 1D0058D4 
+========================================
+
+
+=== AEAD ENCRYPT (masked) ===
+mlen=16, adlen=16, CRYPTO_ABYTES=16
+[KEY SHARES] words=4
+  share[0]: 3BC6AEAD 1A6888F6 E6E61C50 C27204CA 
+  share[1]: 0EA2A869 A62BD4FF AC497F29 EC3B07AB 
+[NPUB SHARES] words=4
+  share[0]: B48B035B 78C136E3 EF654477 CECC2A15 
+  share[1]: 381571E3 00D382C2 A129E31B 14807B8D 
+[AD SHARES] words=4
+  share[0]: E3CBAB8D 4BB21D90 E1D7BB85 D1892CE4 
+  share[1]: 3AB6292E CC7E4F9F 6AD62B66 009BBFB7 
+[MESSAGE SHARES] words=4
+  share[0]: 534DB2FB 28EA236B 391FF8CB 1E0E4A1D 
+  share[1]: 22D3F0A3 AC85A15D 4BDB1058 1D0058D4 
+[STEP] after ascon_initaead(): state initialized with key+nonce
+
+[DEBUG] === AD ABSORPTION START (adlen=16) ===
+x[0] (pre-AD)
+  share[0]: 254A4851 69D423B7
+  share[1]: 8F933C88 1D7FFE90
+x[4] (pre-AD)
+  share[0]: DF88B026 93C73A59
+  share[1]: 1E4BF9B1 58114684
+[DEBUG] Full AD block absorb
+AD block (as)
+  share[0]: 94749913 3D28DBFA
+  share[1]: AEB74612 A73B7D67
+x[0] after absorb
+  share[0]: B13ED142 54FCF84D
+  share[1]: 21247A9A BA4483F7
+x[0] after P^b
+  share[0]: 3D19AB3A B5C34B06
+  share[1]: 57B5C13F AADBC926
+x[1] after P^b
+  share[0]: 4D8B571E A80F9EA3
+  share[1]: 9625BC6D 707B12C5
+x[2] after P^b
+  share[0]: DF039731 626DF193
+  share[1]: FC74234D DBEC9691
+x[3] after P^b
+  share[0]: 6A9003F9 CBBBADA2
+  share[1]: B97BB247 4A28640A
+x[4] after P^b
+  share[0]: EA4F46C3 BA91BE6F
+  share[1]: D76146EF E04A5F21
+x[5] after P^b
+  share[0]: BDE0224C 9186CFDB
+  share[1]: BC044997 30D9FB72
+[DEBUG] Full AD block absorb
+AD block (as)
+  share[0]: D12A9F53 8A6CC9F8
+  share[1]: 05778E1A 0BFD7975
+x[0] after absorb
+  share[0]: EC333469 3FAF82FE
+  share[1]: 52C24F25 A126B053
+x[0] after P^b
+  share[0]: 4A5A0155 ED789D9F
+  share[1]: D3CA9D48 54503B24
+x[1] after P^b
+  share[0]: E506D3CB 50FD1772
+  share[1]: E2D95783 4B545A5C
+x[2] after P^b
+  share[0]: A563A2F3 FEF3FBD7
+  share[1]: 0A21EBB2 8A559C1E
+x[3] after P^b
+  share[0]: 2220649E C719512F
+  share[1]: 293DD632 DDB614D3
+x[4] after P^b
+  share[0]: C6C65A20 E3329CCF
+  share[1]: 341D5942 C98A2E88
+x[5] after P^b
+  share[0]: 5F44DCC4 822E3679
+  share[1]: E89B988B 45C6CF30
+[DEBUG] After AD padding (10* nibble)
+x[0] (after pad)
+  share[0]: 4A5A0155 6D789D9F
+  share[1]: D3CA9D48 54503B24
+[DEBUG] After final P^b on AD
+x[0]
+  share[0]: BC461CB2 A86EE41B
+  share[1]: 9A997D7A AF616352
+x[1]
+  share[0]: 04C29F91 B4BBE3A3
+  share[1]: 7E1E6A4D 506FF3B4
+x[2]
+  share[0]: 0B658798 6DCCD3ED
+  share[1]: 7256D2B3 28C1A71D
+x[3]
+  share[0]: 6B301AAD 4F09B71E
+  share[1]: D1CF11B2 EAF668AD
+x[4]
+  share[0]: 0A06AA8B C6FDE503
+  share[1]: F3230449 0ADE0AC7
+x[5]
+  share[0]: 0CB536AF A7D87D86
+  share[1]: 96A6D5E1 FB0FB0D4
+[DEBUG] Domain separation: x[4].s[0].w[0] ^= 1
+x[4] (post-domain sep)
+  share[0]: 0A06AA8A C6FDE503
+  share[1]: F3230449 0ADE0AC7
+[DEBUG] === AD ABSORPTION END ===
+
+[STEP] after ascon_adata(): AD absorbed (adlen=16)
+
+[DEBUG] === ENCRYPT START (mlen=16) ===
+x[0] (pre-enc)
+  share[0]: BC461CB2 A86EE41B
+  share[1]: 9A997D7A AF616352
+MLOAD msblk (plaintext block)
+  share[0]: 0819DB4D 6F5712DF
+  share[1]: 231F0DC1 E8C259CD
+x[0] after absorb (pre-store)
+  share[0]: B45FC7FF C739F6C4
+  share[1]: B98670BB 47A33A9F
+[DEBUG] MSTORE ciphertext block written
+ct block (= x[0])
+  share[0]: B45FC7FF C739F6C4
+  share[1]: B98670BB 47A33A9F
+[DEBUG] After P^b (post full block)
+x[0]
+  share[0]: 879E2CFD 90444990
+  share[1]: EBE492BE 598A8C7A
+x[1]
+  share[0]: CD2F2F2A 45304C27
+  share[1]: AD2F65BE 7B8ED9A1
+x[2]
+  share[0]: D740060A 81BF9609
+  share[1]: 77568A7E 0B3280F2
+x[3]
+  share[0]: 8F7AD557 DFA26EE9
+  share[1]: 4FD8BEFD 50BF4B72
+x[4]
+  share[0]: 9E0B6A7F C17BBE1B
+  share[1]: 1D803E2E 9819D2E9
+x[5]
+  share[0]: A8C86284 BDBF1394
+  share[1]: 190C5095 B7E27297
+MLOAD msblk (plaintext block)
+  share[0]: 628757C9 333263EB
+  share[1]: 70CE9D4C 20283B02
+x[0] after absorb (pre-store)
+  share[0]: E5197B34 A3762A7B
+  share[1]: 9B2A0FF2 79A2B778
+[DEBUG] MSTORE ciphertext block written
+ct block (= x[0])
+  share[0]: E5197B34 A3762A7B
+  share[1]: 9B2A0FF2 79A2B778
+[DEBUG] After P^b (post full block)
+x[0]
+  share[0]: DB0BF375 CD2B7364
+  share[1]: C290BA2A D425B958
+x[1]
+  share[0]: CC26571E D6E301B8
+  share[1]: 4C699096 36417616
+x[2]
+  share[0]: 1F2CF99C 23E6976B
+  share[1]: 5DA68630 513E61CF
+x[3]
+  share[0]: 758F0EC2 2A241580
+  share[1]: FD1DA14C B1739201
+x[4]
+  share[0]: 3177D623 4A9DE40F
+  share[1]: E5905EB1 D6A975FF
+x[5]
+  share[0]: 9305A59C E6AB31E9
+  share[1]: 60B4B392 D5663D3C
+[DEBUG] Applied 10* padding for final block (mlen rem=0 nibbles)
+x[0] after pad
+  share[0]: DB0BF375 4D2B7364
+  share[1]: C290BA2A D425B958
+[DEBUG] === ENCRYPT END ===
+
+[STEP] after ascon_encrypt(): ciphertext produced
+[CIPHERTEXT/OUT SHARES] words=4
+  share[0]: FA3DF575 E53A1BD7 1DCD2F9A DC1B2B69 
+  share[1]: 1F88C7EF 656BC81E 8A7F7F84 6BC78C4C 
+
+[DEBUG] === FINAL START: load K1 ===
+K1 (key low 64)
+  share[0]: 480E5A23 36AD79FE
+  share[1]: 21EF2009 D78F3DE6
+[DEBUG] Load K2
+K2 (key high 64)
+  share[0]: 8C28AA6C 950BDD20
+  share[1]: A53129F1 E71FE276
+[DEBUG] After x[1] ^= K1
+x[1]
+  share[0]: 84280D3D E04E7846
+  share[1]: 6D86B09F E1CE4BF0
+[DEBUG] After x[2] ^= K2
+x[2]
+  share[0]: 930453F0 B6ED4A4B
+  share[1]: F897AFC1 B62183B9
+[DEBUG] After P^a in final
+x[0]
+  share[0]: EAA6B75C 0D5B1358
+  share[1]: C8D718B8 1FCB8E37
+x[1]
+  share[0]: 70143510 A200933F
+  share[1]: ED239E46 EFAA6C30
+x[2]
+  share[0]: D187C7D9 74711209
+  share[1]: FB873040 E73CE60A
+x[3]
+  share[0]: 4BB0926A 76FCDB59
+  share[1]: 6D9D3B59 CC87C84D
+x[4]
+  share[0]: DAF98664 59405020
+  share[1]: BE7918FF 38AFFFC1
+x[5]
+  share[0]: E2079FBF 192E9FA6
+  share[1]: 40F3F7FC 25D3F4C3
+[DEBUG] After x[3] ^= K1
+x[3]
+  share[0]: 03BEC849 4051A2A7
+  share[1]: 4C721B50 1B08F5AB
+[DEBUG] After x[4] ^= K2
+x[4]
+  share[0]: 56D12C08 CC4B8D00
+  share[1]: 1B48310E DFB01DB7
+[DEBUG] === FINAL END ===
+
+[STEP] after ascon_final(): finalized with key
+[STEP] after ascon_settag(): tag written
+[CIPHERTEXT/OUT SHARES] words=4
+  share[0]: D848986B 20056756 84F20040 B1B4718B 
+  share[1]: AB67998A 12DA1584 07A38A7E A3EF9A40 
+=== END AEAD ENCRYPT ===
+
+Ciphertext masked (total 32 bytes):
+FA3DF575E53A1BD71DCD2F9ADC1B2B69D848986B2005675684F20040B1B4718B001EC5100000000000000000000000000000000000000000000
+Ciphertext + Tag (total 32 bytes):
+1EE34125FDBA17443D01DA8A0EEFB0454281D1D3B962418D2E1C8A6D14F3E8A2
+
+c[16]=1ee34125fdba17443d01da8a0eefb045
+t[16]=4281d1d3b962418d2e1c8a6d14f3e8a2
+
+[DEBUG] === AD ABSORPTION START (adlen=16) ===
+x[0] (pre-AD)
+  share[0]: 59DE3C76 D0E0EE21
+  share[1]: 1D1DB867 3BE64C47
+x[4] (pre-AD)
+  share[0]: F32107F0 D8B0E179
+  share[1]: 8B7D0374 36EA228D
+[DEBUG] Full AD block absorb
+AD block (as)
+  share[0]: 2C3E3B2C 3FF07B69
+  share[1]: A7E301E5 FC2F6F07
+x[0] after absorb
+  share[0]: 75E0075A EF109548
+  share[1]: BAFEB982 C7C92340
+x[0] after P^b
+  share[0]: D1569E10 4BDFBC0D
+  share[1]: DE536462 69452859
+x[1] after P^b
+  share[0]: A4DB1067 7B55A6AF
+  share[1]: BC2D5350 1B3C135F
+x[2] after P^b
+  share[0]: 94F9975C 3A855B82
+  share[1]: 83342EE4 C6F9D4BA
+x[3] after P^b
+  share[0]: F1BC5B1F B5DFE323
+  share[1]: DCF0AE94 86A1B425
+x[4] after P^b
+  share[0]: A90127E2 CB2A48DC
+  share[1]: BEAD62C7 D734894F
+x[5] after P^b
+  share[0]: 535AFCEF 845C04D6
+  share[1]: 6B5F9DEA 8B809AD0
+[DEBUG] Full AD block absorb
+AD block (as)
+  share[0]: D5A65243 544833A0
+  share[1]: 94EE2C1A CF62326E
+x[0] after absorb
+  share[0]: 04F0CC53 1F978FAD
+  share[1]: 4ABD4878 A6271A37
+x[0] after P^b
+  share[0]: A544993A E1E58EEE
+  share[1]: 301990B5 C7F25505
+x[1] after P^b
+  share[0]: E5F453BB 261A5747
+  share[1]: FC895983 97BC5CF2
+x[2] after P^b
+  share[0]: 0C043535 73E55AF1
+  share[1]: 26D31367 2881B8CF
+x[3] after P^b
+  share[0]: DF0830AC 727118F5
+  share[1]: 8C37506D 70BF2F85
+x[4] after P^b
+  share[0]: BA722731 C1BE07E5
+  share[1]: A292FB6D 98194BCC
+x[5] after P^b
+  share[0]: 62916A1C 61D07E49
+  share[1]: 522D438C 3A0FC92C
+[DEBUG] After AD padding (10* nibble)
+x[0] (after pad)
+  share[0]: A544993A 61E58EEE
+  share[1]: 301990B5 C7F25505
+[DEBUG] After final P^b on AD
+x[0]
+  share[0]: 273B4F05 FCF029FF
+  share[1]: F5330B89 3CB8DFD8
+x[1]
+  share[0]: C17D84CD 37D990B1
+  share[1]: C9FD01D5 3C2191E4
+x[2]
+  share[0]: F733A89B 70BA08B2
+  share[1]: F89332CC 861ACCFE
+x[3]
+  share[0]: FC8B3C38 77C04362
+  share[1]: 26ABC300 F3C8E72A
+x[4]
+  share[0]: C0DB94D3 E3893892
+  share[1]: A884CF50 A445B8E3
+x[5]
+  share[0]: EEAF66C8 1D0A7E5E
+  share[1]: D5ECD91D A14FCBC3
+[DEBUG] Domain separation: x[4].s[0].w[0] ^= 1
+x[4] (post-domain sep)
+  share[0]: C0DB94D2 E3893892
+  share[1]: A884CF50 A445B8E3
+[DEBUG] === AD ABSORPTION END ===
+
+
+[DEBUG] === FINAL START: load K1 ===
+K1 (key low 64)
+  share[0]: F25EEA06 5090719B
+  share[1]: 6BF924BE 102E314A
+[DEBUG] Load K2
+K2 (key high 64)
+  share[0]: 4945FB1F A147880E
+  share[1]: 089B0789 6E9547B0
+[DEBUG] After x[1] ^= K1
+x[1]
+  share[0]: BE2D32FF 187F3AF1
+  share[1]: 2D2148D8 E7E61D0F
+[DEBUG] After x[2] ^= K2
+x[2]
+  share[0]: 122772B7 887627DD
+  share[1]: DCF38731 654C317E
+[DEBUG] After P^a in final
+x[0]
+  share[0]: C69C3051 D9C896A7
+  share[1]: 4F87F91D 8DBB31CD
+x[1]
+  share[0]: 4DF15FEE 00259637
+  share[1]: 518EC181 AB0ACD24
+x[2]
+  share[0]: C1B00C24 2C394B52
+  share[1]: FD7E4FE2 EE37CD61
+x[3]
+  share[0]: 45BDA842 F1FE28DC
+  share[1]: AC3A7E58 2CD9B8FD
+x[4]
+  share[0]: 039E535F 991FC12B
+  share[1]: 9283BF84 335DDEB9
+x[5]
+  share[0]: BA38D035 E6AE6EF3
+  share[1]: 471A06B7 D5CDDE7C
+[DEBUG] After x[3] ^= K1
+x[3]
+  share[0]: B7E34244 A16E5947
+  share[1]: C7C35AE6 3CF789B7
+[DEBUG] After x[4] ^= K2
+x[4]
+  share[0]: 4ADBA840 38584925
+  share[1]: 9A18B80D 5DC89909
+[DEBUG] === FINAL END ===
+
+Original msg: 000102030405060708090A0B0C0D0E0F
+Decrypt msg: 000102030405060708090A0B0C0D0E0F
+✅ Crypto_aead_decrypt recover the plaintext

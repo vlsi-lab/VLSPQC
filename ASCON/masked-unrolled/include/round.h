@@ -38,7 +38,7 @@ static inline state_t SBOX(state_t s, int i, int ns) {
   
 
   /* Toffoli gates */
-  s.x[5] = MXORBIC (s.x[5], s.x[4], s.x[3], i, ns);
+  s.x[5] = MXORBIC(s.x[5], s.x[4], s.x[3], i, ns);
   s.x[4] = MXORBIC(s.x[4], s.x[1], s.x[0], i, ns);
   s.x[1] = MXORBIC(s.x[1], s.x[3], s.x[2], i, ns);
   s.x[3] = MXORBIC(s.x[3], s.x[0], s.x[4], i, ns);
@@ -84,20 +84,65 @@ static inline state_t LINEAR(state_t s, int d) {
   return s;
 }
 
+
+static inline word_t MTOFFOLI(word_t a, word_t b, word_t c, int share, int ns);
+
+
+
 static inline void ROUND_(state_t* p, uint8_t C_o, uint8_t C_e, int ns) {
   state_t s = *p;
   /* constant and sbox layer*/
   s.x[2].s[0].w[0] ^= C_e;
-  s = SBOX(s, 0, ns);
+
+  //s = SBOX(s, 0, ns);
+  //s = AFFINE1(s, 0, 0);
+  s.x[2].s[0].w[0] ^= s.x[1].s[0].w[0];
+  s.x[0].s[0].w[0] ^= s.x[4].s[0].w[0];
+  s.x[4].s[0].w[0] ^= s.x[3].s[0].w[0];
+
+  //s = AFFINE1(s, 0, 1);
+  s.x[2].s[1].w[0] ^= s.x[1].s[1].w[0];
+  s.x[0].s[1].w[0] ^= s.x[4].s[1].w[0];
+  s.x[4].s[1].w[0] ^= s.x[3].s[1].w[0];
+
+
+  s.x[5] = MXORBIC (s.x[5], s.x[4], s.x[3], 0, ns);
+  s.x[4] = MXORBIC(s.x[4], s.x[1], s.x[0], 0, ns);
+  s.x[1] = MXORBIC(s.x[1], s.x[3], s.x[2], 0, ns);
+  s.x[3] = MXORBIC(s.x[3], s.x[0], s.x[4], 0, ns);
+  s.x[0] = MXORBIC(s.x[0], s.x[2], s.x[1], 0, ns);
+  s = AFFINE2(s, 0, 0);
+  s.x[2].s[0].w[0] = ~s.x[2].s[0].w[0];
+  s = AFFINE2(s, 0, 1);
+
   s.x[2].s[0].w[1] ^= C_o;
-  s = SBOX(s, 1, ns);
+
+  //s = SBOX(s, 1, ns);
+  //s = AFFINE1(s, 1, 0);
+  s.x[2].s[0].w[1] ^= s.x[1].s[0].w[1];
+  s.x[0].s[0].w[1] ^= s.x[4].s[0].w[1];
+  s.x[4].s[0].w[1] ^= s.x[3].s[0].w[1];
+
+  //s = AFFINE1(s, 1, 1);
+  s.x[2].s[1].w[1] ^= s.x[1].s[1].w[1];
+  s.x[0].s[1].w[1] ^= s.x[4].s[1].w[1];
+  s.x[4].s[1].w[1] ^= s.x[3].s[1].w[1];
+
+  s.x[5] = MXORBIC (s.x[5], s.x[4], s.x[3], 1, ns);
+  s.x[4] = MXORBIC(s.x[4], s.x[1], s.x[0], 1, ns);
+  s.x[1] = MXORBIC(s.x[1], s.x[3], s.x[2], 1, ns);
+  s.x[3] = MXORBIC(s.x[3], s.x[0], s.x[4], 1, ns);
+  s.x[0] = MXORBIC(s.x[0], s.x[2], s.x[1], 1, ns);
+  s = AFFINE2(s, 1, 0);
+  s.x[2].s[0].w[1] = ~s.x[2].s[0].w[1];
+  s = AFFINE2(s, 1, 1);
+
   /* reuse rotated randomness */
   s.x[5] = MREUSE(s.x[5], 0, ns);
+
   /* linear layer*/
-  if (ns >= 4) s = LINEAR(s, 3);
-  if (ns >= 3) s = LINEAR(s, 2);
-  if (ns >= 2) s = LINEAR(s, 1);
-  if (ns >= 1) s = LINEAR(s, 0);
+  s = LINEAR(s, 1);
+  s = LINEAR(s, 0);
   *p = s;
 }
 
