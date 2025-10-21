@@ -1,8 +1,6 @@
 # Compiled application has the same name of its folder
 APPLI   = $(shell basename $(CURDIR))
-SOURCES = src/constants.c src/interleave.c src/printstate.c src/randombytes.c src/shares.c
-SRC     = $(SOURCES) \
-		main.c
+SRC     = main.c
           
 
 INC         = -I ./include/
