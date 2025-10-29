@@ -37,6 +37,7 @@ void hqc_pke_keygen(uint8_t *ek_pke, uint8_t *dk_pke, uint8_t *seed) {
     uint64_t h[VEC_N_SIZE_64] = {0};
     uint64_t s[VEC_N_SIZE_64] = {0};
 
+
     // Derive keypair seeds
     hash_i(keypair_seed, seed);
 
@@ -58,20 +59,22 @@ void hqc_pke_keygen(uint8_t *ek_pke, uint8_t *dk_pke, uint8_t *seed) {
     // Parse decryption key to string
     memcpy(dk_pke, seed_dk, SEED_BYTES);
 
-#ifdef VERBOSE
-    printf("\n\nseed_dk: ");
-    for (int i = 0; i < SEED_BYTES; ++i) printf("%02x", seed_dk[i]);
-    printf("\n\nseed_ek: ");
-    for (int i = 0; i < SEED_BYTES; ++i) printf("%02x", seed_ek[i]);
-    printf("\n\ny: ");
-    vect_print(y, VEC_N_SIZE_BYTES);
-    printf("\n\nx: ");
-    vect_print(x, VEC_N_SIZE_BYTES);
-    printf("\n\nh: ");
-    vect_print(h, VEC_N_SIZE_BYTES);
-    printf("\n\ns: ");
-    vect_print(s, VEC_N_SIZE_BYTES);
-#endif
+
+    //printf("\n\nseed_dk: ");
+    //for (int i = 0; i < SEED_BYTES; ++i) //printf("%02x", seed_dk[i]);
+    ////printf("\n\nseed_ek: ");
+    //for (int i = 0; i < SEED_BYTES; ++i) //printf("%02x", seed_ek[i]);
+    ////printf("\n\ny: ");
+    //vect_print(y, VEC_N_SIZE_BYTES);
+    ////printf("\n\nx: ");
+    //vect_print(x, VEC_N_SIZE_BYTES);
+    ////printf("\n\nh: ");
+    //vect_print(h, VEC_N_SIZE_BYTES);
+    ////printf("\n\ns: ");
+    //vect_print(s, VEC_N_SIZE_BYTES);
+
+    //printf("\n\nVEC_N_SIZE_64: %d", VEC_N_SIZE_64);
+
 
     // Zeroize sensitive data
     memset_zero(keypair_seed, sizeof keypair_seed);

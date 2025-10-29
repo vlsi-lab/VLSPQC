@@ -18,8 +18,8 @@
 
 
 #define TEST_KEY        1
-#define TEST_ENC        1
-#define TEST_DEC        1
+#define TEST_ENC        0
+#define TEST_DEC        0
 
 
 
@@ -64,7 +64,7 @@ int main(void)
     //************************************************* 
     // KEY
     //*************************************************
-    #ifdef TEST_KEY
+    #if TEST_KEY
 
         //Alice generates a public key
         crypto_kem_keypair(pk, sk);
@@ -80,7 +80,7 @@ int main(void)
     //************************************************* 
     // ENCAPSULATION
     //*************************************************     
-    #ifdef TEST_ENC
+    #if TEST_ENC
          
         #ifndef TEST_KEY
             memcpy(pk, TVEC_OUT_PK, CRYPTO_PUBLICKEYBYTES);
@@ -90,8 +90,8 @@ int main(void)
 
         if(memcmp(ct, TVEC_OUT_CT, CRYPTO_CIPHERTEXTBYTES)) { printf("ERROR: CT mismatch\n");}
         if(memcmp(ss, TVEC_OUT_SS, CRYPTO_BYTES)) { printf("ERROR: SS mismatch\n");}
-        //printVect("ct", ct, CRYPTO_CIPHERTEXTBYTES);
-        //printVect("key_a", ss, CRYPTO_BYTES);   
+        printVect("ct", ct, CRYPTO_CIPHERTEXTBYTES);
+        printVect("key_a", ss, CRYPTO_BYTES);   
 
     #endif /* TEST_ENC */
 
@@ -99,7 +99,7 @@ int main(void)
     // DECAPSULATION
     //*************************************************
 
-    #ifdef TEST_DEC
+    #if TEST_DEC
         #ifndef TEST_KEY
             memcpy(sk, TVEC_OUT_SK[0], CRYPTO_SECRETKEYBYTES);
         #endif 
@@ -110,7 +110,7 @@ int main(void)
         crypto_kem_dec(ss1, ct, sk);
 
         if(memcmp(ss1, TVEC_OUT_SS, CRYPTO_BYTES)) { printf("ERROR: SS mismatch\n");}
-        //printVect("key_b", ss1, CRYPTO_BYTES);
+        printVect("key_b", ss1, CRYPTO_BYTES);
     #endif /* TEST_DEC */
 
     #ifdef PRINT_VECT
