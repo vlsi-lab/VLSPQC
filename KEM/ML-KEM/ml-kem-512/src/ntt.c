@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include "params.h"
 #include "ntt.h"
 #include "reduce.h"
@@ -66,7 +67,10 @@ const int16_t zetas[128] = {
 * Returns 16-bit integer congruent to a*b*R^{-1} mod q
 **************************************************/
 static int16_t fqmul(int16_t a, int16_t b) {
-  return montgomery_reduce((int32_t)a*b);
+  int32_t t; 
+  t = montgomery_reduce((int32_t)a*b);
+  printf("a=%d, b=%d, ab=%d, fqmul=%d\n", a, b, (int32_t)a*b, (int16_t)t);
+  return (int16_t)t;
 }
 
 /*************************************************

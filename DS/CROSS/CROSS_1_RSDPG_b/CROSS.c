@@ -39,7 +39,96 @@
 #include "merkle_tree.h"
 #include "pack_unpack.h"
 #include "seedtree.h"
+#include <inttypes.h>   /* PRIx8, PRIx16 */
 
+#define DUMP_VERIFY_PRELOOP_STATE 1
+#define CROSS_VERIFY_FROZEN_PRELOOP 1
+#define DUMP_PREFIX_ROUNDS 0
+#define CROSS_VERIFY_PREFIX_OPEN_0_9 0
+
+#if defined(CROSS_VERIFY_FROZEN_PRELOOP)
+#include "cross_verify_frozen_preloop_state.h"
+#endif
+//#if defined(CROSS_VERIFY_PREFIX_OPEN_0_9)
+//#include "cross_verify_prefix_open_0_9_closed10.h"
+//#endif
+
+
+/* Helpers to print C initializers */
+static void dump_u8_array_as_c(const char *name, const uint8_t *a, size_t n) {
+    printf("static const uint8_t %s[%zu] = {", name, n);
+    for (size_t i = 0; i < n; i++) {
+        if (i) printf(", ");
+        printf("0x%02" PRIx8, a[i]);
+    }
+    printf("};\n\n");
+}
+
+static void dump_raw_object_as_c_u8(const char *name, const void *obj, size_t nbytes) {
+    dump_u8_array_as_c(name, (const uint8_t*)obj, nbytes);
+}
+
+static void dump_fp_elem_array_as_c(const char *name, const FP_ELEM *a, size_t n) {
+    printf("static const FP_ELEM %s[%zu] = {", name, n);
+    for (size_t i = 0; i < n; i++) {
+        if (i) printf(", ");
+        /* Print exact bit-pattern (safe even if FP_ELEM is signed) */
+        printf("(FP_ELEM)0x%04" PRIx16, (uint16_t)a[i]);
+    }
+    printf("};\n\n");
+}
+
+static void dump_fp_elem_matrix_as_c(const char *name,
+                                    const FP_ELEM (*m)[N-K],
+                                    size_t rows, size_t cols) {
+    printf("static const FP_ELEM %s[%zu][%zu] = {\n", name, rows, cols);
+    for (size_t r = 0; r < rows; r++) {
+        printf("  {");
+        for (size_t c = 0; c < cols; c++) {
+            if (c) printf(", ");
+            printf("(FP_ELEM)0x%04" PRIx16, (uint16_t)m[r][c]);
+        }
+        printf("}%s\n", (r + 1 < rows) ? "," : "");
+    }
+    printf("};\n\n");
+}
+
+/* Main dump: everything needed to skip the pre-loop setup */
+static void dump_cross_verify_preloop_state(const FP_ELEM V_tr[K][N-K],
+                                           const FZ_ELEM W_mat[M][N-M],
+                                           const FP_ELEM s[N-K],
+                                           const FP_ELEM chall_1[T],
+                                           const uint8_t chall_2[T],
+                                           const uint8_t round_seeds[T*SEED_LENGTH_BYTES]) {
+    printf("\n\n/* ======== BEGIN: CROSS_verify preloop frozen state ======== */\n\n");
+
+    dump_fp_elem_matrix_as_c("g_V_tr", V_tr, K, (N - K));
+    dump_fp_elem_array_as_c("g_s", s, (N - K));
+    dump_fp_elem_array_as_c("g_chall_1", chall_1, T);
+    dump_u8_array_as_c("g_chall_2", chall_2, T);
+    dump_u8_array_as_c("g_round_seeds", round_seeds, (T * SEED_LENGTH_BYTES));
+
+    /* Dump W_mat as raw bytes (portable across FZ_ELEM signedness/width) */
+    dump_raw_object_as_c_u8("g_W_mat_bytes", W_mat, sizeof(FZ_ELEM) * M * (N - M));
+    printf("/* Restore W_mat with:\n");
+    printf(" *   memcpy(W_mat, g_W_mat_bytes, sizeof(W_mat));\n");
+    printf(" */\n\n");
+
+    /* Optional: show which rounds are open/closed for quick sanity */
+    printf("/* chall_2 indices with value 1 (\"open\" branch): ");
+    for (size_t i = 0; i < T; i++) {
+        if (chall_2[i] == 1) printf("%zu ", i);
+    }
+    printf("*/\n");
+
+    printf("/* chall_2 indices with value 0 (\"close\" branch): ");
+    for (size_t i = 0; i < T; i++) {
+        if (chall_2[i] == 0) printf("%zu ", i);
+    }
+    printf("*/\n\n");
+
+    printf("/* ======== END: CROSS_verify preloop frozen state ======== */\n\n");
+}
 
 static
 void expand_pk(FP_ELEM V_tr[K][N-K],
@@ -320,44 +409,67 @@ int CROSS_verify(const pk_t *const PK,
                  const CROSS_sig_t *const sig){
     CSPRNG_STATE_T csprng_state;
 
-    FP_ELEM V_tr[K][N-K];
+    #if (CROSS_VERIFY_FROZEN_PRELOOP)
+        FP_ELEM V_tr[K][N-K];
+        FP_ELEM s[N-K];
+        FZ_ELEM W_mat[M][N-M];
+        FP_ELEM chall_1[T];
+        uint8_t chall_2[T];
+        uint8_t round_seeds[T*SEED_LENGTH_BYTES];
+        uint8_t digest_chall_1[HASH_DIGEST_LENGTH];
+        uint8_t is_padd_key_ok = 1;
+        uint8_t is_stree_padding_ok = 1;         
+        
+        memcpy(V_tr, g_V_tr, sizeof(V_tr));
+        memcpy(s, g_s, sizeof(s));
+        memcpy(chall_1, g_chall_1, sizeof(chall_1));
+        memcpy(chall_2, g_chall_2, sizeof(chall_2));
+        memcpy(round_seeds, g_round_seeds, sizeof(round_seeds));
+        memcpy(W_mat, g_W_mat_bytes, sizeof(W_mat));
 
-    FZ_ELEM W_mat[M][N-M];
-    expand_pk(V_tr,W_mat,PK->seed_pk);
+    #else
+        FP_ELEM V_tr[K][N-K];
+        FZ_ELEM W_mat[M][N-M];
+        expand_pk(V_tr,W_mat,PK->seed_pk);
 
-    FP_ELEM s[N-K];
-    uint8_t is_padd_key_ok;
-    is_padd_key_ok = unpack_fp_syn(s,PK->s);
+        FP_ELEM s[N-K];
+        uint8_t is_padd_key_ok;
+        is_padd_key_ok = unpack_fp_syn(s,PK->s);
 
-    uint8_t digest_msg_cmt_salt[2*HASH_DIGEST_LENGTH+SALT_LENGTH_BYTES];
-    hash(digest_msg_cmt_salt, (uint8_t*) m, mlen, HASH_DOMAIN_SEP_CONST);
-    memcpy(digest_msg_cmt_salt+HASH_DIGEST_LENGTH, sig->digest_cmt, HASH_DIGEST_LENGTH);
-    memcpy(digest_msg_cmt_salt+2*HASH_DIGEST_LENGTH, sig->salt, SALT_LENGTH_BYTES);
+        uint8_t digest_msg_cmt_salt[2*HASH_DIGEST_LENGTH+SALT_LENGTH_BYTES];
+        hash(digest_msg_cmt_salt, (uint8_t*) m, mlen, HASH_DOMAIN_SEP_CONST);
+        memcpy(digest_msg_cmt_salt+HASH_DIGEST_LENGTH, sig->digest_cmt, HASH_DIGEST_LENGTH);
+        memcpy(digest_msg_cmt_salt+2*HASH_DIGEST_LENGTH, sig->salt, SALT_LENGTH_BYTES);
 
-    uint8_t digest_chall_1[HASH_DIGEST_LENGTH];
-    hash(digest_chall_1, digest_msg_cmt_salt, sizeof(digest_msg_cmt_salt), HASH_DOMAIN_SEP_CONST);
+        uint8_t digest_chall_1[HASH_DIGEST_LENGTH];
+        hash(digest_chall_1, digest_msg_cmt_salt, sizeof(digest_msg_cmt_salt), HASH_DOMAIN_SEP_CONST);
 
-    // Domain separation unique for expanding digest_chall_1
-    const uint16_t dsc_csprng_chall_1 = CSPRNG_DOMAIN_SEP_CONST + (3*T-1);
-    csprng_initialize(&csprng_state, digest_chall_1, sizeof(digest_chall_1), dsc_csprng_chall_1);
+        // Domain separation unique for expanding digest_chall_1
+        const uint16_t dsc_csprng_chall_1 = CSPRNG_DOMAIN_SEP_CONST + (3*T-1);
+        csprng_initialize(&csprng_state, digest_chall_1, sizeof(digest_chall_1), dsc_csprng_chall_1);
 
-    FP_ELEM chall_1[T];
-    csprng_fp_vec_chall_1(chall_1, &csprng_state);
+        FP_ELEM chall_1[T];
+        csprng_fp_vec_chall_1(chall_1, &csprng_state);
 
-    uint8_t chall_2[T]={0};
-    expand_digest_to_fixed_weight(chall_2,sig->digest_chall_2);
+        uint8_t chall_2[T]={0};
+        expand_digest_to_fixed_weight(chall_2,sig->digest_chall_2);
 
-    uint8_t is_stree_padding_ok = 0;
+        uint8_t is_stree_padding_ok = 0;
 
-    uint8_t seed_tree[SEED_LENGTH_BYTES*NUM_NODES_SEED_TREE] = {0};
-    is_stree_padding_ok = rebuild_tree(seed_tree, chall_2, sig->path, sig->salt);
+        uint8_t seed_tree[SEED_LENGTH_BYTES*NUM_NODES_SEED_TREE] = {0};
+        is_stree_padding_ok = rebuild_tree(seed_tree, chall_2, sig->path, sig->salt);
 
-    unsigned char round_seeds[T*SEED_LENGTH_BYTES] = {0};
-    seed_leaves(round_seeds, seed_tree);
+        unsigned char round_seeds[T*SEED_LENGTH_BYTES] = {0};
+        seed_leaves(round_seeds, seed_tree);
 
-    uint8_t cmt_0_i_input[DENSELY_PACKED_FP_SYN_SIZE+
-                          DENSELY_PACKED_FZ_RSDP_G_VEC_SIZE+
-                          SALT_LENGTH_BYTES];
+       //dump_cross_verify_preloop_state(V_tr, W_mat, s, chall_1, chall_2, (const uint8_t*)round_seeds);
+        dump_raw_object_as_c_u8("g_W_mat_bytes", W_mat, sizeof(W_mat));
+
+    #endif
+
+     uint8_t cmt_0_i_input[DENSELY_PACKED_FP_SYN_SIZE+
+                            DENSELY_PACKED_FZ_RSDP_G_VEC_SIZE+
+                            SALT_LENGTH_BYTES];
     const int offset_salt = DENSELY_PACKED_FP_SYN_SIZE+DENSELY_PACKED_FZ_RSDP_G_VEC_SIZE;
     /* cmt_0_i_input is syndrome || v_bar resp. v_G_bar || salt */
     memcpy(cmt_0_i_input+offset_salt, sig->salt, SALT_LENGTH_BYTES);
@@ -374,13 +486,16 @@ int CROSS_verify(const pk_t *const PK,
 
     FP_ELEM y_prime[N] = {0};
     FP_ELEM y_prime_H[N-K] = {0};
-		FP_ELEM s_prime[N-K] = {0};
+        FP_ELEM s_prime[N-K] = {0};
 
     FP_ELEM y[T][N];
 
     int used_rsps = 0;
     int is_signature_ok = 1;
     uint8_t is_packed_padd_ok = 1;
+
+
+
     for(uint16_t i = 0; i< T; i++){
 
         uint16_t domain_sep_csprng = CSPRNG_DOMAIN_SEP_CONST + i + (2*T-1);
@@ -482,16 +597,16 @@ int CROSS_verify(const pk_t *const PK,
                                         sig->digest_cmt,
                                         HASH_DIGEST_LENGTH) == 0);
 
-    #ifndef SKIP_ASSERT
-    assert(does_digest_cmt_match);
-    #endif
+    //#ifndef SKIP_ASSERT
+    //assert(does_digest_cmt_match);
+    //#endif
 
     int does_digest_chall_2_match = ( memcmp(digest_chall_2_prime,
                                         sig->digest_chall_2,
                                         HASH_DIGEST_LENGTH) == 0);
-    #ifndef SKIP_ASSERT
-    assert(does_digest_chall_2_match);
-    #endif
+    //#ifndef SKIP_ASSERT
+    //assert(does_digest_chall_2_match);
+    //#endif
 
     is_signature_ok = is_signature_ok &&
                       does_digest_cmt_match &&

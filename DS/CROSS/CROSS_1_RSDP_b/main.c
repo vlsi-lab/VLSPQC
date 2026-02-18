@@ -44,9 +44,9 @@
 #define RSDP
 #define MLEN_KAT 33
 
-#define TEST_KEY  0
+#define TEST_KEY  1
 #define TEST_SIGN 1
-#define TEST_SIGN_OPEN  0
+#define TEST_SIGN_OPEN  1
 
 #if PRINT_VECT
 void printVect(char* name, uint8_t* buf, size_t size) {

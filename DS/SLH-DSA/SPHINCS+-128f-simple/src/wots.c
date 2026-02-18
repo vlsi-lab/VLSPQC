@@ -90,6 +90,7 @@ void chain_lengths(unsigned int *lengths, const unsigned char *msg)
     wots_checksum(lengths + SPX_WOTS_LEN1, lengths);
 }
 
+
 /**
  * Takes a WOTS signature and an n-byte message, computes a WOTS public key.
  *
