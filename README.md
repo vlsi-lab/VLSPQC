@@ -6,6 +6,17 @@ The repository is designed to provide **runnable code on FPGA platforms** while 
 
 ---
 
+## 📁 Repository Structure
+
+| Folder | Description |
+|--------|-------------|
+| [`original/`](original/) | Original, unmodified reference implementations of PQC algorithms |
+| [`profiling/`](profiling/) | Instrumented implementations for function call profiling and performance analysis. See [`profiling/pqc_profiling_analysis.md`](profiling/pqc_profiling_analysis.md) for comprehensive profiling results |
+| [`masked/`](masked/) | Masked implementations for side-channel attack resistance (includes ASCON variants) |
+| [`other/`](other/) | Auxiliary tests and experiments used during hardware exploration analysis |
+
+---
+
 ## 📦 Included Algorithms
 
 This repository currently supports:
@@ -59,20 +70,47 @@ VLSPQC has been developed within the **VLSI-Lab** as a foundation for:
 
 ---
 
-## 🔧 Usage - TBD
+## 🔧 Usage
 
-Each algorithm resides in its own directory with a corresponding `Makefile` target. For example:
+### Running Tests
 
-```sh
-make app PROJECT=mlkem
-make app PROJECT=mldsa
-make app PROJECT=hqc
-make app PROJECT=falcon
-make app PROJECT=sphincs+
-make app PROJECT=cross
+Use the interactive test launcher to run KAT tests or profiling:
+
+```bash
+./profiling/run_test.sh
 ```
 
+This will guide you through selecting:
+1. **Test category**: `common` (original implementations) or `profiled` (instrumented versions)
+2. **Algorithm family**: ML-KEM, ML-DSA, HQC, FALCON, SLH-DSA, CROSS, etc.
+3. **Specific variant**: parameter set selection
 
+For command-line usage, see [`profiling/README.md`](profiling/README.md).
+
+### Building Individual Algorithms
+
+Each algorithm resides in its own directory with a corresponding `Makefile`:
+
+```bash
+cd original/ML-KEM/ml-kem-512
+make clean && make
+./ml-kem-512
+```
+
+---
+
+## 📊 Profiling
+
+The [`profiling/`](profiling/) folder contains instrumented implementations for performance analysis. Function call profiling results are documented in:
+
+📄 **[`profiling/pqc_profiling_analysis.md`](profiling/pqc_profiling_analysis.md)**
+
+This analysis covers:
+- Function call frequency across KeyGen, Encaps/Sign, and Decaps/Verify operations
+- Bottleneck identification for each algorithm
+- Cross-algorithm performance comparisons
+
+---
 ## 📄 License
 
 This repository follows the licensing terms of the respective reference implementations used as the starting point. Please check individual algorithm directories for specific license details.
