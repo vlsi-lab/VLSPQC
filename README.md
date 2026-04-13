@@ -26,8 +26,8 @@ Dilithium is standardized as [FIPS 204](https://csrc.nist.gov/pubs/fips/204/fina
     - **HQC-2025-v5**   : last version of HQC (22/08/2025) - additional modification to Karatsuba multiplication, for hardware optimization.  
 This repository provides the official implementation of [HQC](https://pqc-hqc.org), a code-based Key Encapsulation Mechanism (KEM) whose security is based on the hardness of solving the Quasi-Cylic Syndrome Decoding (QCSD) problem. HQC is one of the selected algorithms from the [NIST's Post-Quantum Cryptography Standardization Project](https://csrc.nist.gov/projects/post-quantum-cryptography).
 
-- **Falcon**  [Falcon](https://falcon-sign.info/)
-  This repository contains the software that accompanies the [FN-DSA submission](https://falcon-sign.info/) to [NIST's Post-Quantum Cryptography](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography) project.
+- **Falcon**  [Falcon](https://falcon-sign.info/) 
+This repository contains the software that accompanies the [FN-DSA submission](https://falcon-sign.info/) to [NIST's Post-Quantum Cryptography](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography) project.
 
 - **SPHINCS+**  
 This repository contains the software that accompanies the [SPHINCS+ submission](https://sphincs.org/) to [NIST's Post-Quantum Cryptography](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography) project.
