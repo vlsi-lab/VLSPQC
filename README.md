@@ -42,6 +42,7 @@ This repository contains the software that accompanies the [FN-DSA submission](h
 
 - **SPHINCS+**  
 This repository contains the software that accompanies the [SPHINCS+ submission](https://sphincs.org/) to [NIST's Post-Quantum Cryptography](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography) project.
+It includes SLH-DSA/SPHINCS+ SHAKE, SHA2, Haraka, and Haraka-AES variants. Some SHA2 and Haraka-AES variants include RISC-V instruction accelerated paths and require a compatible RISC-V toolchain to build those accelerated versions.
 
 - **CROSS**
 
