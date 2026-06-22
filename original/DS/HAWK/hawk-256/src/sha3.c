@@ -8,7 +8,7 @@
 
 #include "ng_inner.h"
 
-uint64_t keccak_call_count = 0;
+//uint64_t keccak_call_count = 0;
 
 #if NTRUGEN_ASM_CORTEXM4
 /*
@@ -622,7 +622,7 @@ static const uint64_t RC[] = {
 static void
 process_block(uint64_t *A)
 {
-	keccak_call_count++;
+	//keccak_call_count++;
 	uint64_t t0, t1, t2, t3, t4;
 	uint64_t tt0, tt1, tt2, tt3;
 	uint64_t t, kt;
@@ -1147,7 +1147,7 @@ TARGET_AVX2
 static void
 process_block_x4(uint64_t *A)
 {
-	keccak_call_count += 4;
+	//keccak_call_count += 4;
 	__m256i ya[25];
 
 	for (int i = 0; i < 25; i ++) {
